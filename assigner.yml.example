@@ -1,0 +1,12 @@
+bugzilla:
+    api_key: ""
+    url: "https://bugzilla.mozilla.org/rest/"
+    creator: "infosec+rra2json@mozilla.com"
+    rra:
+        product: "Enterprise Information Security"
+        component: "Rapid Risk Analysis"
+        assignees:
+            - gdestuynder@mozilla.com
+            - jclaudius@mozilla.com
+            - cag@mozilla.com
+        cache: "/tmp/rra_assignees.pickle"
