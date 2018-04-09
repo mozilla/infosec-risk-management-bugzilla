@@ -1,5 +1,4 @@
 bugzilla:
-    api_key: ""
     url: "https://bugzilla.mozilla.org/rest/"
     creator: "infosec+rra2json@mozilla.com"
     rra:
@@ -8,5 +7,13 @@ bugzilla:
         assignees:
             - gdestuynder@mozilla.com
             - jclaudius@mozilla.com
-            - cag@mozilla.com
+            - culucenk@mozilla.com
         cache: "/tmp/rra_assignees.pickle"
+    va:
+        product: "Enterprise Information Security"
+        component: "Vulnerability Assessment"
+        assignees:
+            - gdestuynder@mozilla.com
+            - jclaudius@mozilla.com
+            - culucenk@mozilla.com
+        cache: "/tmp/va_assignees.pickle"
