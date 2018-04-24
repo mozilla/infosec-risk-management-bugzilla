@@ -35,7 +35,6 @@ def main():
     else:
         logger.setLevel(logging.INFO)
 
-    # Do things!
     try:
         with open(args.configfile) as fd:
             config = yaml.load(fd)
@@ -43,8 +42,14 @@ def main():
         logger.critical("Could not parse configuration file: {}".format(e))
         sys.exit(127)
     bcfg = config.get('bugzilla')
-    bapi = bugzilla.Bugzilla(url=bcfg.get('url'), api_key=os.environ.get('BUGZILLA_API_KEY'))
 
+    bapi_key = os.environ.get('BUGZILLA_API_KEY')
+    if (bapi_key == None):
+        logger.critical("No Bugzilla API Key passed in environment variable BUGZILLA_API_KEY")
+        sys.exit(127)
+    bapi = bugzilla.Bugzilla(url=bcfg.get('url'), api_key=bapi_key)
+
+    # Do things!
     autoassign(bapi, bcfg.get('rra'), args.dry_run)
     autoassign(bapi, bcfg.get('va'), args.dry_run)
 
@@ -52,7 +57,7 @@ def main():
 def autoassign(bapi, cfg, dry_run):
     """
     This will search through unassigned bugs and assign them automatically.
-    @bcfg: bugzilla configuration dict
+    @cfg: bugzilla configuration dict
     """
     global logger
 
