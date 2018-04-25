@@ -40,11 +40,17 @@ class Casa:
         if (q[-1] == '/'): q = q[:-1]
 
         r = requests.post('{url}{q}'.format(url=self.url, q=q),
-                        headers=self.headers, data=payload)
+                        headers=self.headers, data=json.dumps(payload))
 
         if (not r.ok):
             raise Exception(r.url, r.reason, r.status_code, payload, r.text)
-        return DotDict(r.json())
+
+        if (len(r.text) == 0):
+            ret = {"result": "ok"}
+        else:
+            ret = DotDict(r.json())
+
+        return ret
 
     def parse_casa_comment(self, comment):
         """

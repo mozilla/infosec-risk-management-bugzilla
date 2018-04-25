@@ -117,11 +117,8 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
         ## This is whoemever is assigned in Casa (delegator/approver id)
         delegator_id = casa_status['decidingApprover']['id']
         if not dry_run:
-            result, info = capi.casa_set_status(project_id, delegator_id, bug.get('resolution'))
-            if result == None:
-                logger.info("CASA API did not update, it returned: {}".format(info))
-            else:
-                logger.info("CASA API Updated status: {} ({})".format(result, info))
+            res = capi.casa_set_status(project_id, delegator_id, bug.get('resolution'))
+            logger.info("CASA API Updated status for project {} to {}: {}".format(project_id, bug.get('resolution'), res))
         else:
             logger.info('Would attempt to set status {} on project {} for bug {}{}'
                         ' (dry run prevented this)'
