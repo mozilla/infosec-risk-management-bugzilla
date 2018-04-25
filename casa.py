@@ -38,12 +38,13 @@ class Casa:
         """
 
         if (q[-1] == '/'): q = q[:-1]
+        payload_json = json.dumps(payload)
 
         r = requests.post('{url}{q}'.format(url=self.url, q=q),
-                        headers=self.headers, data=json.dumps(payload))
+                        headers=self.headers, data=payload_json)
 
         if (not r.ok):
-            raise Exception(r.url, r.reason, r.status_code, payload, r.text)
+            raise Exception(r.url, r.reason, r.status_code, payload_json, r.text)
 
         if (len(r.text) == 0):
             ret = {"result": "ok"}
@@ -116,12 +117,21 @@ class Casa:
         payload = {'delegatorId': delegator_id, 'decision': decision, 'decisionLabel': decisionLabel }
         return self._post('projects/{}/channels/security'.format(project_id), payload=payload)
 
-    def set_delegator(self, projectid, bugzilla_user):
+    def find_delegator(self, bugzilla_email):
         """
-        Sets the delegator id for a project
-        @projectid str Casa project id
-        @bugzilla_user str Bugzilla user's email
+        Find the delegator id by trying to match a bugzilla user mail to Casa's
+        Note that we only return the first match and expect it is correct, though this is not actually guaranteed.
+        @bugzilla_email str Bugzilla user's email
         """
 
-        # XXX this is not done yet
-        return None
+        return self._get('users/search', params="q={}".format(bugzilla_email)).get('results')[0]
+
+    def set_delegator(self, project_id, delegator_id):
+        """
+        Set the delegator id to the project (ie assign)
+        @project_id str Casa project id
+        @delegator_id str Casa user identifier for the delegator/assignee
+        """
+
+        payload = {'approverIds': [delegator_id]}
+        return self._post('projects/{}/channels/security'.format(project_id), payload=payload)

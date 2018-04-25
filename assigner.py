@@ -104,7 +104,7 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
             logger.warning('Project {} has no bugzilla integration, skipping!'.format(project_id))
             continue
 
-        ## Is already approved/disapproved in some way?
+        # Is already approved/disapproved in some way?
         ## XXX This means Bugzilla cannot override a status already set, thus, if you set "WONTFIX" in bugzilla,
         ## then later "FIXED" this will NOT be reflected
         casa_status = casa_project['securityPrivacy']['security']['status']
@@ -113,9 +113,29 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
                            casa_status['decision']))
             continue
 
+        # Check who's to be assigned to the project in Casa
+        ## Only try this if the assignee looks like a Mozilla-corp email as we know this will otherwise fail
+        delegator_id = None
+        if bug.get('assigned_to').endswith('@mozilla.com'):
+            delegator = capi.find_delegator(bug.get('assigned_to'))
+            delegator_id = delegator.get('id')
+
+        ## If lookup failed in any way, use whomever is already assigned by Casa
+        if delegator_id is None:
+            logger.warning("Could not match Bugzilla assignee: {} with Casa, "
+                           "using defaults".format(bug.get('assigned_to')))
+            delegator_id = casa_status['decidingApprover']['id']
+        elif (delegator_id != casa_status['decidingApprover']['id']):
+        ## Set the new assignee if lookup worked
+            res = capi.set_delegator(project_id, delegator_id)
+            logger.info("Setting new assignee/delegator in CASA to {} ({}) for project {}".format(delegator_id,
+                                                                                             bug.get('assigned_to'),
+                                                                                             project_id))
+        else:
+            logger.info("Assignee/delegator in CASA is already correct, no changes made "
+                        "{} ({}) for project {})".format(delegator_id, bug.get('assigned_to'), project_id))
+
         # Update the project status
-        ## This is whoemever is assigned in Casa (delegator/approver id)
-        delegator_id = casa_status['decidingApprover']['id']
         if not dry_run:
             res = capi.casa_set_status(project_id, delegator_id, bug.get('resolution'))
             logger.info("CASA API Updated status for project {} to {}: {}".format(project_id, bug.get('resolution'), res))
