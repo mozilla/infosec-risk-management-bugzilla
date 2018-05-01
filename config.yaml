@@ -17,3 +17,7 @@ bugzilla:
             - jclaudius@mozilla.com
             - culucenk@mozilla.com
         cache: "/tmp/va_assignees.pickle"
+casa:
+    url: "https://biztera.com/api/v1/"
+    lookup_period_in_days: 30
+    bot_email: 'bizbot@biztera.com'

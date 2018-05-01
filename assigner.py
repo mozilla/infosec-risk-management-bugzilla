@@ -7,6 +7,8 @@
 
 import argparse
 import bugzilla
+import casa
+from datetime import datetime, timedelta
 import logging
 import pickle
 import requests
@@ -22,7 +24,7 @@ def main():
     parser.add_argument('-d', '--debug', action="store_true", help='Enable debug mode')
     parser.add_argument('--dry-run', action="store_true", help='Perform all read operations, and no write operations. This means no bug '
             'will be updated, CASA won\'t be updated, etc.')
-    parser.add_argument('--configfile', help='Config file that specifies all the parameters we need to assign bugs')
+    parser.add_argument('--configfile', default="config.yaml", help='Config file that specifies all the parameters we need to assign bugs')
 
     args = parser.parse_args()
 
@@ -35,24 +37,119 @@ def main():
     else:
         logger.setLevel(logging.INFO)
 
-    # Do things!
     try:
         with open(args.configfile) as fd:
             config = yaml.load(fd)
     except Exception as e:
         logger.critical("Could not parse configuration file: {}".format(e))
         sys.exit(127)
-    bcfg = config.get('bugzilla')
-    bapi = bugzilla.Bugzilla(url=bcfg.get('url'), api_key=os.environ.get('BUGZILLA_API_KEY'))
 
+    # Bugzilla setup
+    bcfg = config.get('bugzilla')
+    bapi_key = os.environ.get('BUGZILLA_API_KEY')
+    if (bapi_key is None):
+        logger.critical("No Bugzilla API Key passed in environment variable BUGZILLA_API_KEY")
+        sys.exit(127)
+    bapi = bugzilla.Bugzilla(url=bcfg.get('url'), api_key=bapi_key)
+
+    # Casa setup
+    ccfg = config.get('casa')
+    capi_key = os.environ.get('CASA_API_KEY')
+    if (capi_key is None):
+        logger.critical("No CASA API Key passed in environment variable CASA_API_KEY")
+        sys.exit(127)
+    capi = casa.Casa(url=ccfg.get('url'), api_key=capi_key)
+
+    # Do things!
     autoassign(bapi, bcfg.get('rra'), args.dry_run)
     autoassign(bapi, bcfg.get('va'), args.dry_run)
+    autocasa(bapi, capi, bcfg, ccfg, args.dry_run)
 
+def autocasa(bapi, capi, bcfg, ccfg, dry_run):
+    """
+    This will search through closed bugs and update CASA accordingly.
+    @bcfg: bugzilla configuration dict
+    @ccfg: casa configuration dict
+    """
+
+    bcfg_va = bcfg.get('va')
+    bcfg_rra = bcfg.get('rra')
+
+    # Look for bugs that are up to ccfg.lookup_period_in_days days old
+    lookup_period = (datetime.now() - timedelta(days=ccfg.get('lookup_period_in_days'))).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    # Look for all registered products, for that lookup_period
+    terms = [{'product': bcfg_va.get('product')}, {'product': bcfg_rra.get('product')},
+             {'component': bcfg_va.get('component')}, {'component': bcfg_rra.get('component')},
+             {'status': 'RESOLVED'}, {'status': 'VERIFIED'},
+             {'last_change_time': lookup_period},
+             {'creator': ccfg.get('bot_email')}
+            ]
+    bugs = bapi.search_bugs(terms)['bugs']
+    logger.debug('Analyzing {} closed bugs...'.format(len(bugs)))
+
+    for bug in bugs:
+        # Get casa project id and other metadata
+        comments = bapi.get_comments(bug.get('id'))['bugs'][str(bug.get('id'))]['comments']
+        casa_data = capi.parse_casa_comment(comments[0]['text'])
+        project_id = casa_data.get('project_id')
+        if (len(casa_data)) == 0:
+            logger.warning("Could not find any CASA data in comment 0 even thus this comment was created by CASA!")
+            continue
+
+        # Some basic checks that we can update that project
+        ## Have bugzilla support?
+        casa_project = capi.casa_get_project(casa_data.get('project_id'))
+        if casa_project['syncedToIntegrations']['bugzilla'] is not True:
+            logger.warning('Project {} has no bugzilla integration, skipping!'.format(project_id))
+            continue
+
+        # Is already approved/disapproved in some way?
+        ## XXX This means Bugzilla cannot override a status already set, thus, if you set "WONTFIX" in bugzilla,
+        ## then later "FIXED" this will NOT be reflected
+        casa_status = casa_project['securityPrivacy']['security']['status']
+        if casa_status['decision'] != 'none':
+            logger.warning('Project {} already has a security status set ({}), skipping!'.format(project_id,
+                           casa_status['decision']))
+            continue
+
+        # Check who's to be assigned to the project in Casa
+        ## Only try this if the assignee looks like a Mozilla-corp email as we know this will otherwise fail
+        delegator_id = None
+        if bug.get('assigned_to').endswith('@mozilla.com'):
+            delegator = capi.find_delegator(bug.get('assigned_to'))
+            delegator_id = delegator.get('id')
+
+        ## If lookup failed in any way, use whomever is already assigned by Casa
+        if delegator_id is None:
+            logger.warning("Could not match Bugzilla assignee: {} with Casa, "
+                           "using defaults".format(bug.get('assigned_to')))
+            delegator_id = casa_status['decidingApprover']['id']
+        elif (delegator_id != casa_status['decidingApprover']['id']):
+        ## Set the new assignee if lookup worked
+            res = capi.set_delegator(project_id, delegator_id)
+            logger.info("Setting new assignee/delegator in CASA to {} ({}) for project {}".format(delegator_id,
+                                                                                             bug.get('assigned_to'),
+                                                                                             project_id))
+        else:
+            logger.info("Assignee/delegator in CASA is already correct, no changes made "
+                        "{} ({}) for project {})".format(delegator_id, bug.get('assigned_to'), project_id))
+
+        # Update the project status
+        if not dry_run:
+            res = capi.casa_set_status(project_id, delegator_id, bug.get('resolution'))
+            logger.info("CASA API Updated status for project {} to {}: {}".format(project_id, bug.get('resolution'), res))
+        else:
+            logger.info('Would attempt to set status {} on project {} for bug {}{}'
+                        ' (dry run prevented this)'
+                        .format(bug.get('resolution'), casa_data.get('url'), bcfg.get('url')[:-5], bug.get('id')))
+
+    logger.debug('Casa analysis completed')
 
 def autoassign(bapi, cfg, dry_run):
     """
     This will search through unassigned bugs and assign them automatically.
-    @bcfg: bugzilla configuration dict
+    @cfg: bugzilla configuration dict
     """
     global logger
 
