@@ -113,6 +113,12 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
                            casa_status['decision']))
             continue
 
+        # XXX Temporary fix so that we do not re-set none status which can trigger email notifications,
+        # until INVALID/DUPLICATE get their own status
+        if casa_status['decision'] == 'none' and (bug.get('resolution') in ['INVALID', 'DUPLICATE']):
+            logger.warning('Project {} is already in status \'none\' and will not be modified'.format(project_id))
+            continue
+
         # Check who's to be assigned to the project in Casa
         ## Only try this if the assignee looks like a Mozilla-corp email as we know this will otherwise fail
         delegator_id = None
