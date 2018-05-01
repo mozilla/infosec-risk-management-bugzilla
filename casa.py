@@ -108,8 +108,7 @@ class Casa:
                          'INVALID': ('Pending', 'none'),
                          'DUPLICATE': ('Pending', 'none'),
                          'WONTFIX': ('Do not use', 'rejected'),
-                         'INCOMPLETE': ('Warning: Outstanding issues, refer to the RRA', 'done'),
-                         'FIXED': ('Completed: No outstanding issues found', 'done')
+                         'INCOMPLETE': ('Warning: Outstanding issues, refer to the RRA', 'done')
                        }
         decisionLabel, decision = decision_map.get(bug_resolution)
 
