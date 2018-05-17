@@ -17,6 +17,7 @@ class Casa:
         self.url = url
         self.headers = {'content-type': 'application/json',
                         'Authorization': 'Bearer '+self.api_key}
+        self.api_max_retries = 3
 
     def _get(self, q, params=''):
         """
@@ -25,8 +26,13 @@ class Casa:
 
         if (q[-1] == '/'): q = q[:-1]
 
-        r = requests.get('{url}{q}?{params}'.format(url=self.url, q=q, params=params),
-                headers=self.headers)
+        retries = 0
+
+        while (retries < self.api_max_retries):
+            r = requests.get('{url}{q}?{params}'.format(url=self.url, q=q, params=params),
+                    headers=self.headers)
+            retries = retries + 1
+            if (r.ok): break
 
         if (not r.ok):
             raise Exception(r.url, r.reason, r.status_code, r.text)
@@ -40,8 +46,13 @@ class Casa:
         if (q[-1] == '/'): q = q[:-1]
         payload_json = json.dumps(payload)
 
-        r = requests.post('{url}{q}'.format(url=self.url, q=q),
-                        headers=self.headers, data=payload_json)
+        retries = 0
+
+        while (retries < self.api_max_retries):
+            r = requests.post('{url}{q}'.format(url=self.url, q=q),
+                            headers=self.headers, data=payload_json)
+            retries = retries + 1
+            if (r.ok): break
 
         if (not r.ok):
             raise Exception(r.url, r.reason, r.status_code, payload_json, r.text)
