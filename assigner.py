@@ -179,7 +179,11 @@ def autoassign(bapi, cfg, dry_run):
             {'status': 'NEW'}, {'status': 'UNCONFIRMED'}
             ]
 
-    bugs = bapi.search_bugs(terms)['bugs']
+    try:
+        bugs = bapi.search_bugs(terms)['bugs']
+    except Exception as e:
+        logger.warning('Fatal: Bugzilla search query failed, will not auto-assign bugs: {}'.format(e))
+        return
 
     try:
         bugzilla.DotDict(bugs[-1])
