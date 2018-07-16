@@ -69,7 +69,7 @@ def main():
 
 def autocasa(bapi, capi, bcfg, ccfg, dry_run):
     """
-    This will search through closed bugs and update CASA accordingly.
+    This will search through bugs and update CASA accordingly.
     @bcfg: bugzilla configuration dict
     @ccfg: casa configuration dict
     """
@@ -83,12 +83,11 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
     # Look for all registered products, for that lookup_period
     terms = [{'product': bcfg_va.get('product')}, {'product': bcfg_rra.get('product')},
              {'component': bcfg_va.get('component')}, {'component': bcfg_rra.get('component')},
-             {'status': 'RESOLVED'}, {'status': 'VERIFIED'},
              {'last_change_time': lookup_period},
              {'creator': ccfg.get('bot_email')}
             ]
     bugs = bapi.search_bugs(terms)['bugs']
-    logger.debug('Analyzing {} closed bugs...'.format(len(bugs)))
+    logger.debug('Analyzing {} bugs...'.format(len(bugs)))
 
     for bug in bugs:
         # Get casa project id and other metadata
@@ -134,23 +133,33 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
                            "using defaults".format(bug.get('assigned_to')))
             delegator_id = casa_status['decidingApprover']['id']
         elif (delegator_id != casa_status['decidingApprover']['id']):
-        ## Set the new assignee if lookup worked
-            res = capi.set_delegator(project_id, delegator_id)
-            logger.info("Setting new assignee/delegator in CASA to {} ({}) for project {}".format(delegator_id,
-                                                                                             bug.get('assigned_to'),
-                                                                                             project_id))
+            ## Set the new assignee if lookup worked
+            if not dry_run:
+                res = capi.set_delegator(project_id, delegator_id)
+                logger.info("Setting new assignee/delegator in CASA to {} ({}) for project {}".format(delegator_id,
+                                                                                               bug.get('assigned_to'),
+                                                                                               project_id))
+            else:
+                logger.info("Would attempt to set assignee/delegator in CASA to {} ({}) for project {}",
+                            "(dry run prevented this)".format(delegator_id, bug.get('assigned_to'), project_id))
         else:
             logger.info("Assignee/delegator in CASA is already correct, no changes made "
                         "{} ({}) for project {})".format(delegator_id, bug.get('assigned_to'), project_id))
 
-        # Update the project status
-        if not dry_run:
-            res = capi.casa_set_status(project_id, delegator_id, bug.get('resolution'))
-            logger.info("CASA API Updated status for project {} to {}: {}".format(project_id, bug.get('resolution'), res))
+        # Update the project status if the bug has been closed in some way
+        if bug.get('status') in ['RESOLVED', 'VERIFIED', 'CLOSED'] :
+            if not dry_run:
+                res = capi.casa_set_status(project_id, delegator_id, bug.get('resolution'))
+                logger.info("CASA API Updated status for project {} to {}: {}".format(project_id,
+                                                                                      bug.get('resolution'),
+                                                                                      res))
+            else:
+                logger.info('Would attempt to set status {} on project {} for bug {}{}'
+                            ' (dry run prevented this)'
+                            .format(bug.get('resolution'), casa_data.get('url'), bcfg.get('url')[:-5], bug.get('id')))
         else:
-            logger.info('Would attempt to set status {} on project {} for bug {}{}'
-                        ' (dry run prevented this)'
-                        .format(bug.get('resolution'), casa_data.get('url'), bcfg.get('url')[:-5], bug.get('id')))
+            logger.debug("Would not set CASA status because this bug is not in a resolved state yet: "
+                         "{}{}".format(bcfg.get('url')[:-5], bug.get('id')))
 
     logger.debug('Casa analysis completed')
 
