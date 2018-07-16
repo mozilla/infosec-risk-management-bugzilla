@@ -9,7 +9,7 @@ import argparse
 import bugzilla
 import casa
 from datetime import datetime, timedelta
-import logging
+import logging, logging.handlers
 import pickle
 import requests
 import sys
@@ -31,11 +31,13 @@ def main():
     # Logging
     logger = logging.getLogger(__name__)
     formatstr="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s"
-    logging.basicConfig(format=formatstr, datefmt="%H:%M:%S", stream=sys.stderr)
+    loghandlers = [logging.handlers.SysLogHandler(address='/dev/log')]
     if args.debug:
         logger.setLevel(logging.DEBUG)
+        loghandlers.append(logging.StreamHandler(stream=sys.stderr))
     else:
         logger.setLevel(logging.INFO)
+    logging.basicConfig(format=formatstr, datefmt="%H:%M:%S", handlers=loghandlers)
 
     try:
         with open(args.configfile) as fd:
