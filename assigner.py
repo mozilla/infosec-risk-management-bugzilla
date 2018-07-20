@@ -16,56 +16,78 @@ import sys
 import yaml
 import os
 
-def main():
-    global logger
-
-    # Arguments
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--debug', action="store_true", help='Enable debug mode')
-    parser.add_argument('--dry-run', action="store_true", help='Perform all read operations, and no write operations. This means no bug '
-            'will be updated, CASA won\'t be updated, etc.')
-    parser.add_argument('--configfile', default="config.yaml", help='Config file that specifies all the parameters we need to assign bugs')
-
-    args = parser.parse_args()
-
+def _setup_logging(logger = logging.getLogger(__name__), debug=True):
+    """
+    Setup default logging
+    It can be overloaded by passing a premade logger
+    """
     # Logging
-    logger = logging.getLogger(__name__)
     formatstr="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s"
     loghandlers = [logging.handlers.SysLogHandler(address='/dev/log')]
-    if args.debug:
+    if debug:
         logger.setLevel(logging.DEBUG)
         loghandlers.append(logging.StreamHandler(stream=sys.stderr))
     else:
         logger.setLevel(logging.INFO)
     logging.basicConfig(format=formatstr, datefmt="%H:%M:%S", handlers=loghandlers)
+    return logger
 
+
+def _parse_args(parser=argparse.ArgumentParser()):
+    """
+    Default argument parser
+    It can be overloaded by passing a premade parser
+    """
+    # Arguments
+    parser.add_argument('-d', '--debug', action="store_true", help='Enable debug mode and prints debug messages')
+    parser.add_argument('--dry-run', action="store_true", help='Perform all read operations, and no write operations')
+    parser.add_argument('--configfile', default="config.yaml", help='Config file for this program')
+
+    args = parser.parse_args()
+    return args
+
+
+def _load_config(path):
+    """
+    Config loader, takes a yaml file
+    """
+    config = {}
     try:
-        with open(args.configfile) as fd:
+        with open(path) as fd:
             config = yaml.load(fd)
     except Exception as e:
         logger.critical("Could not parse configuration file: {}".format(e))
         sys.exit(127)
+    return config
 
-    # Bugzilla setup
-    bcfg = config.get('bugzilla')
+
+def _setup_bugzilla_api(url):
+    """
+    Setup the bugzilla API object
+    """
     bapi_key = os.environ.get('BUGZILLA_API_KEY')
+
     if (bapi_key is None):
         logger.critical("No Bugzilla API Key passed in environment variable BUGZILLA_API_KEY")
         sys.exit(127)
-    bapi = bugzilla.Bugzilla(url=bcfg.get('url'), api_key=bapi_key)
 
-    # Casa setup
-    ccfg = config.get('casa')
+    bapi = bugzilla.Bugzilla(url=url, api_key=bapi_key)
+    return bapi
+
+
+def _setup_casa_api(url):
+    """
+    Setup the CASA/Biztera API object
+    """
     capi_key = os.environ.get('CASA_API_KEY')
+
     if (capi_key is None):
         logger.critical("No CASA API Key passed in environment variable CASA_API_KEY")
         sys.exit(127)
-    capi = casa.Casa(url=ccfg.get('url'), api_key=capi_key)
 
-    # Do things!
-    autoassign(bapi, bcfg.get('rra'), args.dry_run)
-    autoassign(bapi, bcfg.get('va'), args.dry_run)
-    autocasa(bapi, capi, bcfg, ccfg, args.dry_run)
+    capi = casa.Casa(url=url, api_key=capi_key)
+    return capi
+
 
 def autocasa(bapi, capi, bcfg, ccfg, dry_run):
     """
@@ -163,6 +185,7 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
 
     logger.debug('Casa analysis completed')
 
+
 def autoassign(bapi, cfg, dry_run):
     """
     This will search through unassigned bugs and assign them automatically.
@@ -229,6 +252,19 @@ def autoassign(bapi, cfg, dry_run):
 
     with open(cfg.get('cache'), 'wb') as f:
         pickle.dump((assign_list, assign_hash), f)
+
+
+def main():
+    global logger
+    args = _parse_args()
+    logger = _setup_logging(debug=args.debug)
+    config = _load_config(args.configfile)
+    bapi = _setup_bugzilla_api(config['bugzilla']['url'])
+    capi = _setup_casa_api(config['casa']['url'])
+
+    autoassign(bapi, config['bugzilla']['rra'], args.dry_run)
+    autoassign(bapi, config['bugzilla']['va'], args.dry_run)
+    autocasa(bapi, capi, config['bugzilla'], config['casa'], args.dry_run)
 
 
 if __name__ == "__main__":
