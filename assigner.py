@@ -197,7 +197,7 @@ def autoassign(bapi, cfg, dry_run):
     try:
         with open(cfg.get('cache'), 'rb') as f:
             (assign_list, assign_hash) = pickle.load(f)
-            if set(assign_list) != set(assign_hash):
+            if set(assign_list) != set(cfg.get('assignees')):
                 logger.info("List of assignees changed, resetting list!")
                 reset_assignees = True
     except FileNotFoundError:
