@@ -5,7 +5,6 @@ bugzilla:
         product: "Enterprise Information Security"
         component: "Rapid Risk Analysis"
         assignees:
-            - gdestuynder@mozilla.com
             - jclaudius@mozilla.com
             - culucenk@mozilla.com
             - tweir@mozilla.com
@@ -14,7 +13,6 @@ bugzilla:
         product: "Enterprise Information Security"
         component: "Vulnerability Assessment"
         assignees:
-            - gdestuynder@mozilla.com
             - jclaudius@mozilla.com
             - culucenk@mozilla.com
         cache: "/tmp/va_assignees.pickle"
