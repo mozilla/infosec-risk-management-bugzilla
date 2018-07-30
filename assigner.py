@@ -112,6 +112,7 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
     logger.debug('Analyzing {} bugs...'.format(len(bugs)))
 
     for bug in bugs:
+        logger.debug("Processing bug {}...".format(bug.get('id')))
         # Get casa project id and other metadata
         comments = bapi.get_comments(bug.get('id'))['bugs'][str(bug.get('id'))]['comments']
         casa_data = capi.parse_casa_comment(comments[0]['text'])
@@ -149,12 +150,24 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
             delegator = capi.find_delegator(bug.get('assigned_to'))
             delegator_id = delegator.get('id')
 
+        try:
+            deciding_approver = casa_status['decidingApprover']['id']
+        except TypeError:
+            # It's possible that the decidingApprover is empty in Casa
+            deciding_approver = None
+            logger.debug("No decidingApprover id present in CASA, setting deciding_approver to None")
+
         ## If lookup failed in any way, use whomever is already assigned by Casa
         if delegator_id is None:
             logger.warning("Could not match Bugzilla assignee: {} with Casa, "
                            "using defaults".format(bug.get('assigned_to')))
-            delegator_id = casa_status['decidingApprover']['id']
-        elif (delegator_id != casa_status['decidingApprover']['id']):
+            delegator_id = deciding_approver
+            # Everything failed, we have no one to assign to. Warn and skip..
+            if (delegator_id is None):
+                logger.warning("Could not find a valid delegator_id, this means we don't know whom to delegate to. "
+                        "Project {} will NOT be assigned in CASA (skipping).".format(project_id))
+                continue
+        elif (delegator_id != deciding_approver):
             ## Set the new assignee if lookup worked
             if not dry_run:
                 res = capi.set_delegator(project_id, delegator_id)
@@ -162,7 +175,7 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
                                                                                                bug.get('assigned_to'),
                                                                                                project_id))
             else:
-                logger.info("Would attempt to set assignee/delegator in CASA to {} ({}) for project {}",
+                logger.info("Would attempt to set assignee/delegator in CASA to {} ({}) for project {}"
                             "(dry run prevented this)".format(delegator_id, bug.get('assigned_to'), project_id))
         else:
             logger.info("Assignee/delegator in CASA is already correct, no changes made "
