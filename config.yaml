@@ -7,6 +7,7 @@ bugzilla:
         assignees:
             - jclaudius@mozilla.com
             - tweir@mozilla.com
+            - culucenk@mozilla.com
         cache: "/tmp/rra_assignees.pickle"
     va:
         product: "Enterprise Information Security"
@@ -14,6 +15,7 @@ bugzilla:
         assignees:
             - jclaudius@mozilla.com
             - smacleod@mozilla.com
+            - culucenk@mozilla.com
         cache: "/tmp/va_assignees.pickle"
 casa:
     url: "https://biztera.com/api/v1/"
