@@ -1,0 +1,22 @@
+bugzilla:
+    url: "https://bugzilla.allizom.org/rest/"
+    creator: "infosec+rra2json@mozilla.com"
+    rra:
+        product: "Enterprise Information Security"
+        component: "Rapid Risk Analysis"
+        assignees:
+            - jclaudius@mozilla.com
+            - tweir@mozilla.com
+            - culucenk@mozilla.com
+        cache: "/tmp/rra_assignees_stage.pickle"
+    va:
+        product: "Enterprise Information Security"
+        component: "Vulnerability Assessment"
+        assignees:
+            - jclaudius@mozilla.com
+            - culucenk@mozilla.com
+        cache: "/tmp/va_assignees_stage.pickle"
+casa:
+    url: "https://INSERT_CASA_STAGE_HOST/api/v1/"
+    lookup_period_in_days: 30
+    bot_email: 'INSERT_STAGE_BIZBOT_EMAIL_ADDRESS'
