@@ -277,7 +277,7 @@ def main():
 
     autoassign(bapi, config['bugzilla']['rra'], args.dry_run)
     autoassign(bapi, config['bugzilla']['va'], args.dry_run)
-    #autocasa(bapi, capi, config['bugzilla'], config['casa'], args.dry_run)
+    autocasa(bapi, capi, config['bugzilla'], config['casa'], args.dry_run)
 
 
 if __name__ == "__main__":
