@@ -42,6 +42,7 @@ def _parse_args(parser=argparse.ArgumentParser()):
     parser.add_argument('-d', '--debug', action="store_true", help='Enable debug mode and prints debug messages')
     parser.add_argument('--dry-run', action="store_true", help='Perform all read operations, and no write operations')
     parser.add_argument('--configfile', default="config.yaml", help='Config file for this program')
+    parser.add_argument('--module', default="va,rra,casa", help='Choose which module to run, such as va, rra, or casa')
 
     args = parser.parse_args()
     return args
@@ -292,9 +293,15 @@ def main():
     bapi = _setup_bugzilla_api(config['bugzilla']['url'])
     capi = _setup_casa_api(config['casa']['url'])
 
-    autoassign(bapi, config['bugzilla']['rra'], args.dry_run)
-    autoassign(bapi, config['bugzilla']['va'], args.dry_run)
-    autocasa(bapi, capi, config['bugzilla'], config['casa'], args.dry_run)
+    modules = args.module.split(',')
+    logger.debug('Selected modules to run: {}'.format(modules))
+
+    if 'rra' in modules:
+        autoassign(bapi, config['bugzilla']['rra'], args.dry_run)
+    if 'va' in modules:
+        autoassign(bapi, config['bugzilla']['va'], args.dry_run)
+    if 'casa' in modules:
+        autocasa(bapi, capi, config['bugzilla'], config['casa'], args.dry_run)
 
 
 if __name__ == "__main__":
