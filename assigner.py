@@ -155,7 +155,7 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
         except TypeError:
             # It's possible that the decidingApprover is empty in Casa
             deciding_approver = None
-            logger.debug("No decidingApprover id present in CASA, setting deciding_approver to None")
+            logger.debug("No decidingApprover id present in CASA, internally setting deciding_approver to None")
 
         ## If lookup failed in any way, use whomever is already assigned by Casa
         if delegator_id is None:
@@ -277,7 +277,7 @@ def main():
 
     autoassign(bapi, config['bugzilla']['rra'], args.dry_run)
     autoassign(bapi, config['bugzilla']['va'], args.dry_run)
-    #autocasa(bapi, capi, config['bugzilla'], config['casa'], args.dry_run)
+    autocasa(bapi, capi, config['bugzilla'], config['casa'], args.dry_run)
 
 
 if __name__ == "__main__":
