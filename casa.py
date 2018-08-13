@@ -145,3 +145,19 @@ class Casa:
 
         payload = {'approverIds': [delegator_id]}
         return self._post('projects/{}/channels/security'.format(project_id), payload=payload)
+
+    def set_project_step(self, project_id, channel='security', step='approverReview'):
+        """
+        Set the project step (state). If not set to approverReview for example, it's not possible to modify the project
+        (set delegator, etc.)
+        @project_id str Casa project id
+        @channel str the project channel
+        @step str Casa project step
+        """
+
+        valid_steps = ['approverReview', 'moderatorReview'] # This could-should also be an enum/object
+        if step not in valid_steps:
+            raise Exception('InvalidStepValue')
+        payload = {'step': step}
+        return self._post('projects/{}/channels/{}'.format(project_id, channel), payload=payload)
+

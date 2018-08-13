@@ -16,7 +16,10 @@ Scopes required:
 
 ## Usage
 
-See `config.yaml` for configuration and `./asssigner.py --help` for available commands.
+See `config.yaml` for configuration and `./assigner.py --help` for available commands.
+
+Example:
+`$ ./assigner.py -d --dry-run --module rra,va`
 
 # Features
 
