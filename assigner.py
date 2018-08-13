@@ -128,6 +128,23 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
             logger.warning('Project {} has no bugzilla integration, skipping!'.format(project_id))
             continue
 
+        # The project also needs to be in approverReview step/state in order for us to be able to set a delegator, so
+        # ensure that here
+        if (casa_project.get('securityPrivacy') is None) or (casa_project['securityPrivacy'].get('security') is None):
+            logger.warning('Project {} has no securityPrivacy.security component, skipping!'.format(project_id))
+            continue
+
+        # Set a shorthand for our tab
+        casa_project_security = casa_project['securityPrivacy']['security']
+
+        if casa_project_security['status'].get('step') != 'approverReview':
+            logger.info('Project {} is not in approverReview state ({})'.format(project_id,
+                                                                                casa_project_security['status']))
+            if not dry_run:
+                casa.set_project_step(project_id, channel='security', step='approverReview')
+            else:
+                logger.debug('Would set project {} step to approverReview (dry_run prevented this)'.format(project_id))
+
         # Is already approved/disapproved in some way?
         ## XXX This means Bugzilla cannot override a status already set, thus, if you set "WONTFIX" in bugzilla,
         ## then later "FIXED" this will NOT be reflected
