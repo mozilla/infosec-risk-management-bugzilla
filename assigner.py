@@ -142,7 +142,7 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
             logger.info('Project {} is not in approverReview state ({})'.format(project_id,
                                                                                 casa_project_security['status']))
             if not dry_run:
-                casa.set_project_step(project_id, channel='security', step='approverReview')
+                capi.set_project_step(project_id, channel='security', step='approverReview')
             else:
                 logger.debug('Would set project {} step to approverReview (dry_run prevented this)'.format(project_id))
 
