@@ -1,8 +1,7 @@
 # Setup
 
-- Bugzilla credentials are passed as environment variable `BUGZILLA_API_KEY`
-- CASA credentials are passed as environment variable `CASA_API_KEY`
-
+- Bugzilla credentials are obtained at run-time from Amazons Parameter Store
+- CASA credentials are obtained at run-time from Amazons Parameter Store
 
 For Bugzilla, you need a "personal token" that you can generate in your user profile.
 
@@ -16,10 +15,10 @@ Scopes required:
 
 ## Usage
 
-See `config.yaml` for configuration and `./assigner.py --help` for available commands.
+`npm install -g serverless`
+`npm install`
+`serverless deploy`
 
-Example:
-`$ ./assigner.py -d --dry-run --module rra,va`
 
 # Features
 

@@ -1,0 +1,10 @@
+{
+  "name": "infosec-risk-management-bugzilla",
+  "version": "1.0.0",
+  "description": "A Bugzilla triage and Biterra/CASA syncing process",
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "serverless-python-requirements": "^4.2.4"
+  }
+}

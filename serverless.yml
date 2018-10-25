@@ -1,0 +1,21 @@
+service: infosec-risk-management-bugzilla
+
+frameworkVersion: ">=1.2.0 <2.0.0"
+
+provider:
+  name: aws
+  runtime: python3.6
+
+functions:
+  cron:
+    handler: handler.run
+    events:
+      - schedule: rate(10 minute)
+
+plugins:
+  - serverless-python-requirements
+
+custom:
+  pythonRequirements:
+    dockerFile: Dockerfile
+    dockerizePip: non-linux
