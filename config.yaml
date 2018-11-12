@@ -8,6 +8,7 @@ bugzilla:
             - jclaudius@mozilla.com
             - culucenk@mozilla.com
             - gdestuynder@mozilla.com
+            - tweir@mozilla.com
         cache: "/tmp/rra_assignees.pickle"
     va:
         product: "Enterprise Information Security"
