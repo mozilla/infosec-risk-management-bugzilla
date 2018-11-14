@@ -10,11 +10,10 @@ functions:
   cron:
     handler: handler.run
     events:
-      - schedule: rate(10 minute)
+      - schedule: rate(10 minutes)
 
 plugins:
   - serverless-python-requirements
-
 custom:
   pythonRequirements:
     dockerFile: Dockerfile

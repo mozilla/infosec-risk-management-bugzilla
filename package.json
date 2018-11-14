@@ -5,6 +5,9 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "serverless-python-requirements": "^4.2.4"
+    "serverless-python-requirements": "^4.2.5"
+  },
+  "devDependencies": {
+    "serverless-python-requirements": "^4.2.5"
   }
 }

@@ -16,8 +16,8 @@ Scopes required:
 ## Usage
 
 `npm install -g serverless`
-`npm install`
-`serverless deploy`
+`sls plugin install -n serverless-python-requirements`
+`sls deploy`
 
 
 # Features
