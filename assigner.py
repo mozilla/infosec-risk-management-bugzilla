@@ -42,6 +42,7 @@ def _parse_args(parser=argparse.ArgumentParser()):
     parser.add_argument('-d', '--debug', action="store_true", help='Enable debug mode and prints debug messages')
     parser.add_argument('--dry-run', action="store_true", help='Perform all read operations, and no write operations')
     parser.add_argument('--configfile', default="config.yaml", help='Config file for this program')
+    parser.add_argument('--module', default="va,rra,casa", help='Choose which module to run, such as va, rra, or casa')
 
     args = parser.parse_args()
     return args
@@ -121,6 +122,7 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
             logger.warning("Could not find any CASA data in comment 0 even thus this comment was created by CASA!")
             continue
 
+        # STEP 1
         # Some basic checks that we can update that project
         ## Have bugzilla support?
         casa_project = capi.casa_get_project(casa_data.get('project_id'))
@@ -128,10 +130,19 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
             logger.warning('Project {} has no bugzilla integration, skipping!'.format(project_id))
             continue
 
+        # Ensure this project cares about security and thus has a security tab/channel
+        if (casa_project.get('securityPrivacy') is None) or (casa_project['securityPrivacy'].get('security') is None):
+            logger.warning('Project {} has no securityPrivacy.security component, skipping!'.format(project_id))
+            continue
+
+        # Set a shorthands for our tab
+        casa_project_security = casa_project['securityPrivacy']['security']
+        casa_status = casa_project_security.get('status')
+
+        # STEP 2
         # Is already approved/disapproved in some way?
         ## XXX This means Bugzilla cannot override a status already set, thus, if you set "WONTFIX" in bugzilla,
         ## then later "FIXED" this will NOT be reflected
-        casa_status = casa_project['securityPrivacy']['security']['status']
         if casa_status['decision'] != 'none':
             logger.warning('Project {} already has a security status set ({}), skipping!'.format(project_id,
                            casa_status['decision']))
@@ -143,6 +154,7 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
             logger.warning('Project {} is already in status \'none\' and will not be modified'.format(project_id))
             continue
 
+        # STEP 3
         # Check who's to be assigned to the project in Casa
         ## Only try this if the assignee looks like a Mozilla-corp email as we know this will otherwise fail
         delegator_id = None
@@ -155,7 +167,7 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
         except TypeError:
             # It's possible that the decidingApprover is empty in Casa
             deciding_approver = None
-            logger.debug("No decidingApprover id present in CASA, setting deciding_approver to None")
+            logger.debug("No decidingApprover id present in CASA, internally setting deciding_approver to None")
 
         ## If lookup failed in any way, use whomever is already assigned by Casa
         if delegator_id is None:
@@ -181,6 +193,18 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
             logger.info("Assignee/delegator in CASA is already correct, no changes made "
                         "{} ({}) for project {})".format(delegator_id, bug.get('assigned_to'), project_id))
 
+        # STEP 4
+        # The project also needs to be in approverReview step/state in order for us to be able to set a delegator, so
+        # ensure that here
+        if casa_project_security['status'].get('step') != 'approverReview':
+            logger.info('Project {} is not in approverReview state ({})'.format(project_id,
+                                                                                casa_project_security['status']))
+            if not dry_run:
+                capi.set_project_step(project_id, channel='security', step='approverReview')
+            else:
+                logger.debug('Would set project {} step to approverReview (dry_run prevented this)'.format(project_id))
+
+        # STEP 5
         # Update the project status if the bug has been closed in some way
         if bug.get('status') in ['RESOLVED', 'VERIFIED', 'CLOSED'] :
             if not dry_run:
@@ -275,9 +299,15 @@ def main():
     bapi = _setup_bugzilla_api(config['bugzilla']['url'])
     capi = _setup_casa_api(config['casa']['url'])
 
-    autoassign(bapi, config['bugzilla']['rra'], args.dry_run)
-    autoassign(bapi, config['bugzilla']['va'], args.dry_run)
-    autocasa(bapi, capi, config['bugzilla'], config['casa'], args.dry_run)
+    modules = args.module.split(',')
+    logger.debug('Selected modules to run: {}'.format(modules))
+
+    if 'rra' in modules:
+        autoassign(bapi, config['bugzilla']['rra'], args.dry_run)
+    if 'va' in modules:
+        autoassign(bapi, config['bugzilla']['va'], args.dry_run)
+    if 'casa' in modules:
+        autocasa(bapi, capi, config['bugzilla'], config['casa'], args.dry_run)
 
 
 if __name__ == "__main__":
