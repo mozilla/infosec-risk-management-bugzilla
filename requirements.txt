@@ -3,6 +3,6 @@ certifi==2018.1.18
 chardet==3.0.4
 idna==2.6
 pyaml==17.12.1
-PyYAML==3.12
+pyyaml>=4.2b1
 requests==2.20.1
 urllib3==1.23
