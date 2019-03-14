@@ -115,7 +115,7 @@ class Casa:
         """
         # Map decision bugzilla=>(casa decision label, casa decision)
         decision_map = {
-                         'FIXED': ('Completed: No oustanding issues found', 'done'),
+                         'FIXED': ('Completed: No outstanding issues found', 'done'),
                          'INVALID': ('Pending', 'none'),
                          'DUPLICATE': ('Pending', 'none'),
                          'WONTFIX': ('Do not use', 'rejected'),
