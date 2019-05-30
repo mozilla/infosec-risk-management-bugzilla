@@ -159,8 +159,13 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
         ## Only try this if the assignee looks like a Mozilla-corp email as we know this will otherwise fail
         delegator_id = None
         if bug.get('assigned_to').endswith('@mozilla.com'):
-            delegator = capi.find_delegator(bug.get('assigned_to'))
-            delegator_id = delegator.get('id')
+            try:
+                delegator = capi.find_delegator(bug.get('assigned_to'))
+            except IndexError:
+                delegator = None
+                logger.warning("No CASA delegator for Bugzilla user {}".format(bug.get('assigned_to')))
+            else:
+                delegator_id = delegator.get('id')
 
         try:
             deciding_approver = casa_status['decidingApprover']['id']
