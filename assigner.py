@@ -234,6 +234,16 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
                 logger.info(
                     "CASA API Updated status for project {} to {}: {}".format(project_id, bug.get("resolution"), res)
                 )
+                if bug.get("resolution") in ["WONTIFX", "INCOMPLETE"]:
+                    needinfo = {"requestee": bcfg.get("needinfo"), "name": "needinfo", "status": "?", "type_id": 800}
+                    bug_up = bugzilla.DotDict()
+                    bug_up.flags = [needinfo]
+                    bapi.put_bug(bug.get("id"), bug_up)
+                    logger.info(
+                        "Will inform risk manager {} of resolution state for bug {}".format(
+                            bcfg.get("needinfo"), bug.get("id")
+                        )
+                    )
             else:
                 logger.info(
                     "Would attempt to set status {} on project {} for bug {}{}"
@@ -241,6 +251,12 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
                         bug.get("resolution"), casa_data.get("url"), bcfg.get("url")[:-5], bug.get("id")
                     )
                 )
+                if bug.get("resolution") in ["WONTIFX", "INCOMPLETE"]:
+                    logger.info(
+                        "Would have informed risk manager {} of resolution state for bug {}".format(
+                            bcfg.get("needinfo"), bug.get("id")
+                        )
+                    )
         else:
             logger.debug(
                 "Would not set CASA status because this bug is not in a resolved state yet: "
