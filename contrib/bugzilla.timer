@@ -1,0 +1,8 @@
+[Unit]
+Description=https://github.com/mozilla/infosec-risk-management-bugzilla
+[Timer]
+OnBootSec=15min
+OnUnitActiveSec=15min
+RandomizedDelaySec=10sec
+[Install]
+WantedBy=timers.target
