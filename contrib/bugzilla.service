@@ -1,0 +1,11 @@
+[Unit]
+Description=https://github.com/mozilla/infosec-risk-management-bugzilla
+[Service]
+Type=oneshot
+EnvironmentFile=/home/ec2-user/secret-env
+WorkingDirectory=/home/ec2-user/infosec-risk-management-bugzilla/
+ExecStart=/usr/bin/git pull -r origin master
+ExecStart=/home/ec2-user/infosec-risk-management-bugzilla/venv/bin/pip3 install -r requirements.txt
+ExecStart=/home/ec2-user/infosec-risk-management-bugzilla/venv/bin/python3 ./assigner.py -d --module casa --configfile ./config.yaml
+ExecStart=/home/ec2-user/infosec-risk-management-bugzilla/venv/bin/python3 ./assigner.py -d --module bugzilla --configfile ./config.yaml
+User=ec2-user
