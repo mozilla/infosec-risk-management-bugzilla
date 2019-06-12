@@ -234,7 +234,7 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
                 logger.info(
                     "CASA API Updated status for project {} to {}: {}".format(project_id, bug.get("resolution"), res)
                 )
-                if bug.get("resolution") in ["WONTIFX", "INCOMPLETE"]:
+                if bug.get("resolution") in ["WONTFIX", "INCOMPLETE"]:
                     needinfo = {"requestee": bcfg.get("needinfo"), "name": "needinfo", "status": "?", "type_id": 800}
                     bug_up = bugzilla.DotDict()
                     bug_up.flags = [needinfo]
