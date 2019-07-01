@@ -130,7 +130,7 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
         # Some basic checks that we can update that project
         ## Have bugzilla support?
         casa_project = capi.casa_get_project(casa_data.get("project_id"))
-        if casa_project["syncedToIntegrations"]["bugzilla"] is not True:
+        if casa_project["syncedToIntegrations"].get("bugzilla") is not True:
             logger.warning("Project {} has no bugzilla integration, skipping!".format(project_id))
             continue
 
