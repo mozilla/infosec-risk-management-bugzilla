@@ -14,9 +14,9 @@ bugzilla:
         product: "Enterprise Information Security"
         component: "Vulnerability Assessment"
         assignees:
-            - jclaudius@mozilla.com
             - culucenk@mozilla.com
             - gdestuynder@mozilla.com
+            - tweir@mozilla.com
         cache: "/tmp/va_assignees.pickle"
 casa:
     url: "https://biztera.com/api/v1/"
