@@ -145,11 +145,18 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
 
         # STEP 2
         # Is already approved/disapproved in some way?
-        ## XXX This means Bugzilla cannot override a status already set, thus, if you set "WONTFIX" in bugzilla,
-        ## then later "FIXED" this will NOT be reflected
-        if casa_status["decision"] != "none":
+        ## This means Bugzilla cannot override a status already set to done
+        ## It will override "none" or "rejected" as necessary
+        if casa_status["decision"] == "rejected" and not (bug.get("resolution") in ["WONTIFX", "INCOMPLETE"]):
             logger.warning(
-                "Project {} already has a security status set ({}), skipping!".format(
+                "Project {} already has a security status set ({}), but we're allowing override".format(
+                    project_id, casa_status["decision"]
+                )
+            )
+            pass
+        elif casa_status["decision"] != "none":
+            logger.warning(
+                "Project {} already has a security status set ({}) and this cannot be reverted, skipping!".format(
                     project_id, casa_status["decision"]
                 )
             )
