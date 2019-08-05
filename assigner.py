@@ -147,7 +147,7 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
         # Is already approved/disapproved in some way?
         ## This means Bugzilla cannot override a status already set to done
         ## It will override "none" or "rejected" as necessary
-        if casa_status["decision"] == "rejected" and not (bug.get("resolution") in ["WONTIFX", "INCOMPLETE"]):
+        if casa_status["decision"] == "rejected" and not (bug.get("resolution") in ["WONTFIX", "INCOMPLETE"]):
             logger.warning(
                 "Project {} already has a security status set ({}), but we're allowing override".format(
                     project_id, casa_status["decision"]
@@ -258,7 +258,7 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
                         bug.get("resolution"), casa_data.get("url"), bcfg.get("url")[:-5], bug.get("id")
                     )
                 )
-                if bug.get("resolution") in ["WONTIFX", "INCOMPLETE"]:
+                if bug.get("resolution") in ["WONTFIX", "INCOMPLETE"]:
                     logger.info(
                         "Would have informed risk manager {} of resolution state for bug {}".format(
                             bcfg.get("needinfo"), bug.get("id")
