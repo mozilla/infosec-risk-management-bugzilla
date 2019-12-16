@@ -250,7 +250,11 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
                         ts_delegator = capi.find_delegator(bcfg.get("needinfo"))
                     except IndexError:
                         ts_delegator = delegator
-                        logger.warning("No CASA delegator for Bugzilla user {}, using previous delegator".format(bcfg.get("needinfo"))
+                        logger.warning(
+                            "No CASA delegator for Bugzilla user {}, using previous delegator".format(
+                                bcfg.get("needinfo")
+                            )
+                        )
                     capi.set_delegator(project_id, ts_delegator.get("id"))
                     logger.info(
                         "Will inform risk manager {} of resolution state for bug {}".format(
