@@ -246,6 +246,13 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
                     try:
                         ts_delegator = capi.find_delegator(bcfg.get("needinfo"))
                         delegator_id = ts_delegator.get("id")
+                        # Set the new delegator here so that casa_set_status() works for this delegator_id
+                        # This is because Biztera will reset the project status when the delegator is changed, but also
+                        # does not allow changing the project status with "another" delegator. This means the steps must
+                        # always be:
+                        # 1) change delegator (this will reset status)
+                        # 2) change project status to the desired status
+                        capi.set_delegator(project_id, delegator_id)
                     except IndexError:
                         logger.warning(
                             "No CASA delegator for Bugzilla user {}, using previous delegator".format(
