@@ -237,30 +237,31 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
         # Update the project status if the bug has been closed in some way
         if bug.get("status") in ["RESOLVED", "VERIFIED", "CLOSED"]:
             if not dry_run:
-                res = capi.casa_set_status(project_id, delegator_id, bug.get("resolution"))
-                logger.info(
-                    "CASA API Updated status for project {} to {}: {}".format(project_id, bug.get("resolution"), res)
-                )
                 if bug.get("resolution") in ["WONTFIX", "INCOMPLETE"]:
                     needinfo = {"requestee": bcfg.get("needinfo"), "name": "needinfo", "status": "?", "type_id": 800}
                     bug_up = bugzilla.DotDict()
                     bug_up.flags = [needinfo]
                     bapi.put_bug(bug.get("id"), bug_up)
+                    # Override delegator to the risk manager if needed
                     try:
                         ts_delegator = capi.find_delegator(bcfg.get("needinfo"))
+                        delegator_id = ts_delegator.get("id")
                     except IndexError:
-                        ts_delegator = delegator
                         logger.warning(
                             "No CASA delegator for Bugzilla user {}, using previous delegator".format(
                                 bcfg.get("needinfo")
                             )
                         )
-                    capi.set_delegator(project_id, ts_delegator.get("id"))
                     logger.info(
-                        "Will inform risk manager {} of resolution state for bug {}".format(
-                            bcfg.get("needinfo"), bug.get("id")
-                        )
+                        "Will inform risk manager {} of resolution state for bug {} "
+                        "(and delegate CASA ticket to this user)".format(bcfg.get("needinfo"), bug.get("id"))
                     )
+                res = capi.casa_set_status(project_id, delegator_id, bug.get("resolution"))
+                logger.info(
+                    "CASA API Updated status for project {} to {}: {} (delegator: {})".format(
+                        project_id, bug.get("resolution"), res, delegator_id
+                    )
+                )
             else:
                 logger.info(
                     "Would attempt to set status {} on project {} for bug {}{}"
