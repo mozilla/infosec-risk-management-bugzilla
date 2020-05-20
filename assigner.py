@@ -291,16 +291,16 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
     logger.debug("Casa analysis completed")
 
 
-def autoassign(bapi, cfg, dry_run):
+def autoassign(bapi, capi, bcfg, dry_run):
     """
     This will search through unassigned bugs and assign them automatically.
-    @cfg: bugzilla configuration dict
+    @bcfg: bugzilla configuration dict
     """
     global logger
 
     reset_assignees = False  # Controls if we're going to rewrite the cache that record who's the next assignee or not
     try:
-        with open(cfg.get("cache"), "rb") as f:
+        with open(bcfg.get("cache"), "rb") as f:
             (assign_list, assign_hash) = pickle.load(f)
             if set(assign_list) != set(cfg.get("assignees")):
                 logger.info("List of assignees changed, resetting list!")
@@ -309,14 +309,14 @@ def autoassign(bapi, cfg, dry_run):
         reset_assignees = True
 
     if reset_assignees:
-        assign_hash = cfg.get("assignees")
+        assign_hash = bcfg.get("assignees")
         assign_list = assign_hash[:]
         logger.info("Configuring defaults for the NEW assignment list: {}".format(assign_hash))
 
     # Do we have any bugs in the queue?
     terms = [
-        {"product": cfg.get("product")},
-        {"component": cfg.get("component")},
+        {"product": bcfg.get("product")},
+        {"component": bcfg.get("component")},
         {"status": "NEW"},
         {"status": "UNCONFIRMED"},
     ]
@@ -342,6 +342,16 @@ def autoassign(bapi, cfg, dry_run):
             else:
                 # dry_run does not rotate
                 assignee = assign_list[0]
+
+            # Check the first comment (comment 0), if it has "Product Line: Firefox"
+            # then this should be assigned to FoxSec
+            comments = bapi.get_comments(bug.get("id"))["bugs"][str(bug.get("id"))]["comments"]
+            casa_data = capi.parse_casa_comment(comments[0]["text"])
+            product_line = casa_data.get("product_line")
+            if "firefox" in product_line.lower():
+                # This is a Firefox-related project/vendor, should be handled by FoxSec
+                # TODO: Change the email address later
+                assignee = "cag@mozilla.com"
             bug_up = bugzilla.DotDict()
             bug_up.assigned_to = assignee
             bug_up.status = "ASSIGNED"
@@ -361,7 +371,7 @@ def autoassign(bapi, cfg, dry_run):
     except IndexError:
         logger.info("No unassigned bugs for component")
 
-    with open(cfg.get("cache"), "wb") as f:
+    with open(bcfg.get("cache"), "wb") as f:
         pickle.dump((assign_list, assign_hash), f)
 
 
@@ -377,9 +387,9 @@ def main():
     logger.debug("Selected modules to run: {}".format(modules))
 
     if "rra" in modules:
-        autoassign(bapi, config["bugzilla"]["rra"], args.dry_run)
+        autoassign(bapi, capi, config["bugzilla"]["rra"], args.dry_run)
     if "va" in modules:
-        autoassign(bapi, config["bugzilla"]["va"], args.dry_run)
+        autoassign(bapi, capi, config["bugzilla"]["va"], args.dry_run)
     if "casa" in modules:
         autocasa(bapi, capi, config["bugzilla"], config["casa"], args.dry_run)
 
