@@ -21,7 +21,7 @@ casa:
     bot_email: 'bizbot@biztera.com'
 foxsec:
     assignee:
-        - cag@mozilla.com
+        - jvehent@mozilla.com
     keywords:
         - fxa
         - firefox
