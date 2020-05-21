@@ -5,6 +5,20 @@ bugzilla:
     rra:
         product: "Enterprise Information Security"
         component: "Rapid Risk Analysis"
+        keywords:
+            - FxA
+            - Firefox
+            - Balrog
+            - Normandy
+            - Telemetry
+            - FxSend
+            - FxMonitor
+            - FPN
+            - Taskcluster
+            - shipit
+            - Sentry
+            - Phabricator
+            - Lando
         assignees:
             - culucenk@mozilla.com
             - tweir@mozilla.com
