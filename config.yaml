@@ -21,18 +21,18 @@ casa:
     bot_email: 'bizbot@biztera.com'
 foxsec:
     assignee:
-        - culucenk@mozilla.com
+        - cag@mozilla.com
     keywords:
-        - FxA
-        - Firefox
-        - Balrog
-        - Normandy
-        - Telemetry
-        - FxSend
-        - FxMonitor
-        - FPN
-        - Taskcluster
+        - fxa
+        - firefox
+        - balrog
+        - normandy
+        - telemetry
+        - fxsend
+        - fxmonitor
+        - fpn
+        - taskcluster
         - shipit
-        - Sentry
-        - Phabricator
-        - Lando
+        - sentry
+        - phabricator
+        - lando
