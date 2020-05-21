@@ -5,20 +5,6 @@ bugzilla:
     rra:
         product: "Enterprise Information Security"
         component: "Rapid Risk Analysis"
-        keywords:
-            - FxA
-            - Firefox
-            - Balrog
-            - Normandy
-            - Telemetry
-            - FxSend
-            - FxMonitor
-            - FPN
-            - Taskcluster
-            - shipit
-            - Sentry
-            - Phabricator
-            - Lando
         assignees:
             - culucenk@mozilla.com
             - tweir@mozilla.com
@@ -33,3 +19,20 @@ casa:
     url: "https://biztera.com/api/v1/"
     lookup_period_in_days: 30
     bot_email: 'bizbot@biztera.com'
+foxsec:
+    assignee:
+        - culucenk@mozilla.com
+    keywords:
+        - FxA
+        - Firefox
+        - Balrog
+        - Normandy
+        - Telemetry
+        - FxSend
+        - FxMonitor
+        - FPN
+        - Taskcluster
+        - shipit
+        - Sentry
+        - Phabricator
+        - Lando
