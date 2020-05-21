@@ -355,14 +355,12 @@ def autoassign(bapi, capi, bcfg, ccfg, fcfg, dry_run):
                 # If it has "Product Line: Firefox" then this should be assigned to FoxSec
                 if "firefox" in product_line.lower():
                     # This is a Firefox-related project/vendor, should be handled by FoxSec
-                    # TODO: Change the email address later
                     assignee = fcfg.get("assignee")
             # RRA requested manually in Bugzilla
             else:
                 comment_0 = bapi.get_comments(bug.get("id"))["bugs"][str(bug.get("id"))]["comments"][0]["text"]
                 if any(keyword in comment_0.lower() for keyword in foxsec_keywords):
                     # This is a Firefox-related project/vendor, should be handled by FoxSec
-                    # TODO: Change the email address later
                     assignee = fcfg.get("assignee")
 
             bug_up = bugzilla.DotDict()
