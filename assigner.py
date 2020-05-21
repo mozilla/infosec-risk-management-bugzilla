@@ -56,7 +56,7 @@ def _load_config(path):
     config = {}
     try:
         with open(path) as fd:
-            config = yaml.load(fd)
+            config = yaml.safe_load(fd)
     except Exception as e:
         logger.critical("Could not parse configuration file: {}".format(e))
         sys.exit(127)
@@ -305,7 +305,7 @@ def autoassign(bapi, capi, bcfg, ccfg, fcfg, dry_run):
     try:
         with open(bcfg.get("cache"), "rb") as f:
             (assign_list, assign_hash) = pickle.load(f)
-            if set(assign_list) != set(cfg.get("assignees")):
+            if set(assign_list) != set(bcfg.get("assignees")):
                 logger.info("List of assignees changed, resetting list!")
                 reset_assignees = True
     except FileNotFoundError:
@@ -348,7 +348,7 @@ def autoassign(bapi, capi, bcfg, ccfg, fcfg, dry_run):
 
             # Is this a CASA bug or manual RRA request?
             if bug.get("creator") == ccfg.get("bot_email"):
-                # This is bug sync'ed from CASA, look for "Product Line" in first comment
+                # This bug is sync'ed from CASA, look for "Product Line" in first comment
                 comments = bapi.get_comments(bug.get("id"))["bugs"][str(bug.get("id"))]["comments"]
                 casa_comment = capi.parse_casa_comment(comments[0]["text"])
                 product_line = casa_comment.get("product_line")
@@ -360,13 +360,10 @@ def autoassign(bapi, capi, bcfg, ccfg, fcfg, dry_run):
             # RRA requested manually in Bugzilla
             else:
                 comment_0 = bapi.get_comments(bug.get("id"))["bugs"][str(bug.get("id"))]["comments"][0]["text"]
-                foxsec_rra = False
-                if any(keyword.lower() in comment_0 for keyword in foxsec_keywords):
-                    foxsec_rra = True
-                    break
-                # This is a Firefox-related project/vendor, should be handled by FoxSec
-                # TODO: Change the email address later
-                assignee = fcfg.get("assignee")
+                if any(keyword in comment_0.lower() for keyword in foxsec_keywords):
+                    # This is a Firefox-related project/vendor, should be handled by FoxSec
+                    # TODO: Change the email address later
+                    assignee = fcfg.get("assignee")
 
             bug_up = bugzilla.DotDict()
             bug_up.assigned_to = assignee
