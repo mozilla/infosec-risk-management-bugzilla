@@ -291,14 +291,17 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
     logger.debug("Casa analysis completed")
 
 
-def autoassign(bapi, capi, bcfg, dry_run):
+def autoassign(bapi, capi, bcfg, ccfg, fcfg, dry_run):
     """
     This will search through unassigned bugs and assign them automatically.
     @bcfg: bugzilla configuration dict
+    @ccfg: casa configuration dict
+    @fcfg: foxsec configuration dict
     """
     global logger
 
     reset_assignees = False  # Controls if we're going to rewrite the cache that record who's the next assignee or not
+    foxsec_keywords = fcfg.get("keywords")
     try:
         with open(bcfg.get("cache"), "rb") as f:
             (assign_list, assign_hash) = pickle.load(f)
@@ -343,15 +346,28 @@ def autoassign(bapi, capi, bcfg, dry_run):
                 # dry_run does not rotate
                 assignee = assign_list[0]
 
-            # Check the first comment (comment 0), if it has "Product Line: Firefox"
-            # then this should be assigned to FoxSec
-            comments = bapi.get_comments(bug.get("id"))["bugs"][str(bug.get("id"))]["comments"]
-            casa_data = capi.parse_casa_comment(comments[0]["text"])
-            product_line = casa_data.get("product_line")
-            if "firefox" in product_line.lower():
+            # Is this a CASA bug or manual RRA request?
+            if bug.get("creator") == ccfg.get("bot_email"):
+                # This is bug sync'ed from CASA, look for "Product Line" in first comment
+                comments = bapi.get_comments(bug.get("id"))["bugs"][str(bug.get("id"))]["comments"]
+                casa_comment = capi.parse_casa_comment(comments[0]["text"])
+                product_line = casa_comment.get("product_line")
+                # If it has "Product Line: Firefox" then this should be assigned to FoxSec
+                if "firefox" in product_line.lower():
+                    # This is a Firefox-related project/vendor, should be handled by FoxSec
+                    # TODO: Change the email address later
+                    assignee = fcfg.get("assignee")
+            # RRA requested manually in Bugzilla
+            else:
+                comment_0 = bapi.get_comments(bug.get("id"))["bugs"][str(bug.get("id"))]["comments"][0]["text"]
+                foxsec_rra = False
+                if any(keyword.lower() in comment_0 for keyword in foxsec_keywords):
+                    foxsec_rra = True
+                    break
                 # This is a Firefox-related project/vendor, should be handled by FoxSec
                 # TODO: Change the email address later
-                assignee = "cag@mozilla.com"
+                assignee = fcfg.get("assignee")
+
             bug_up = bugzilla.DotDict()
             bug_up.assigned_to = assignee
             bug_up.status = "ASSIGNED"
@@ -387,9 +403,9 @@ def main():
     logger.debug("Selected modules to run: {}".format(modules))
 
     if "rra" in modules:
-        autoassign(bapi, capi, config["bugzilla"]["rra"], args.dry_run)
+        autoassign(bapi, capi, config["bugzilla"]["rra"], config["casa"], config["foxsec"], args.dry_run)
     if "va" in modules:
-        autoassign(bapi, capi, config["bugzilla"]["va"], args.dry_run)
+        autoassign(bapi, capi, config["bugzilla"]["va"], config["casa"], config["foxsec"], args.dry_run)
     if "casa" in modules:
         autocasa(bapi, capi, config["bugzilla"], config["casa"], args.dry_run)
 
