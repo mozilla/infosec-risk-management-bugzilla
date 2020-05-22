@@ -19,3 +19,20 @@ casa:
     url: "https://biztera.com/api/v1/"
     lookup_period_in_days: 30
     bot_email: 'bizbot@biztera.com'
+foxsec:
+    assignees:
+        - jvehent@mozilla.com
+    keywords:
+        - fxa
+        - firefox
+        - balrog
+        - normandy
+        - telemetry
+        - fxsend
+        - fxmonitor
+        - fpn
+        - taskcluster
+        - shipit
+        - sentry
+        - phabricator
+        - lando

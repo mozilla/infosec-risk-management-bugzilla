@@ -87,12 +87,16 @@ class Casa:
                 parsed["project_id"] = parsed.get("url").split("/")[-1]
             elif parse_next == "creator":
                 parsed["creator"] = l.split("- ")[1]
+            elif parse_next == "product_line":
+                parsed["product_line"] = l.split("- ")[1]
 
             # Setup next-line parser
             if l == "Biztera URL:":
                 parse_next = "url"
             elif l == "Project Creator:":
                 parse_next = "creator"
+            elif l == "Product Line:":
+                parse_next = "product_line"
             else:
                 parse_next = None
 

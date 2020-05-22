@@ -56,7 +56,7 @@ def _load_config(path):
     config = {}
     try:
         with open(path) as fd:
-            config = yaml.load(fd)
+            config = yaml.safe_load(fd)
     except Exception as e:
         logger.critical("Could not parse configuration file: {}".format(e))
         sys.exit(127)
@@ -291,32 +291,35 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
     logger.debug("Casa analysis completed")
 
 
-def autoassign(bapi, cfg, dry_run):
+def autoassign(bapi, capi, bcfg, ccfg, fcfg, dry_run):
     """
     This will search through unassigned bugs and assign them automatically.
-    @cfg: bugzilla configuration dict
+    @bcfg: bugzilla configuration dict
+    @ccfg: casa configuration dict
+    @fcfg: foxsec configuration dict
     """
     global logger
 
     reset_assignees = False  # Controls if we're going to rewrite the cache that record who's the next assignee or not
+    foxsec_keywords = fcfg.get("keywords")
     try:
-        with open(cfg.get("cache"), "rb") as f:
+        with open(bcfg.get("cache"), "rb") as f:
             (assign_list, assign_hash) = pickle.load(f)
-            if set(assign_list) != set(cfg.get("assignees")):
+            if set(assign_list) != set(bcfg.get("assignees")):
                 logger.info("List of assignees changed, resetting list!")
                 reset_assignees = True
     except FileNotFoundError:
         reset_assignees = True
 
     if reset_assignees:
-        assign_hash = cfg.get("assignees")
+        assign_hash = bcfg.get("assignees")
         assign_list = assign_hash[:]
         logger.info("Configuring defaults for the NEW assignment list: {}".format(assign_hash))
 
     # Do we have any bugs in the queue?
     terms = [
-        {"product": cfg.get("product")},
-        {"component": cfg.get("component")},
+        {"product": bcfg.get("product")},
+        {"component": bcfg.get("component")},
         {"status": "NEW"},
         {"status": "UNCONFIRMED"},
     ]
@@ -342,6 +345,24 @@ def autoassign(bapi, cfg, dry_run):
             else:
                 # dry_run does not rotate
                 assignee = assign_list[0]
+
+            # Is this a CASA bug or manual RRA request?
+            if bug.get("creator") == ccfg.get("bot_email"):
+                # This bug is sync'ed from CASA, look for "Product Line" in first comment
+                comments = bapi.get_comments(bug.get("id"))["bugs"][str(bug.get("id"))]["comments"]
+                casa_comment = capi.parse_casa_comment(comments[0]["text"])
+                product_line = casa_comment.get("product_line")
+                # If it has "Product Line: Firefox" then this should be assigned to FoxSec
+                if "firefox" in product_line.lower():
+                    # This is a Firefox-related project/vendor, should be handled by FoxSec
+                    assignee = fcfg.get("assignee")
+            # RRA requested manually in Bugzilla
+            else:
+                comment_0 = bapi.get_comments(bug.get("id"))["bugs"][str(bug.get("id"))]["comments"][0]["text"]
+                if any(keyword in comment_0.lower() for keyword in foxsec_keywords):
+                    # This is a Firefox-related project/vendor, should be handled by FoxSec
+                    assignee = fcfg.get("assignee")
+
             bug_up = bugzilla.DotDict()
             bug_up.assigned_to = assignee
             bug_up.status = "ASSIGNED"
@@ -361,7 +382,7 @@ def autoassign(bapi, cfg, dry_run):
     except IndexError:
         logger.info("No unassigned bugs for component")
 
-    with open(cfg.get("cache"), "wb") as f:
+    with open(bcfg.get("cache"), "wb") as f:
         pickle.dump((assign_list, assign_hash), f)
 
 
@@ -377,9 +398,9 @@ def main():
     logger.debug("Selected modules to run: {}".format(modules))
 
     if "rra" in modules:
-        autoassign(bapi, config["bugzilla"]["rra"], args.dry_run)
+        autoassign(bapi, capi, config["bugzilla"]["rra"], config["casa"], config["foxsec"], args.dry_run)
     if "va" in modules:
-        autoassign(bapi, config["bugzilla"]["va"], args.dry_run)
+        autoassign(bapi, capi, config["bugzilla"]["va"], config["casa"], config["foxsec"], args.dry_run)
     if "casa" in modules:
         autocasa(bapi, capi, config["bugzilla"], config["casa"], args.dry_run)
 
