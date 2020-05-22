@@ -20,7 +20,7 @@ casa:
     lookup_period_in_days: 30
     bot_email: 'bizbot@biztera.com'
 foxsec:
-    assignee:
+    assignees:
         - jvehent@mozilla.com
     keywords:
         - fxa
