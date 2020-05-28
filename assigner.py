@@ -164,7 +164,7 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
 
         # XXX Temporary fix so that we do not re-set none status which can trigger email notifications,
         # until INVALID/DUPLICATE get their own status
-        if casa_status["decision"] == "none" and (bug.get("resolution") in ["INVALID", "DUPLICATE"]):
+        if casa_status["decision"] == "none" and (bug.get("resolution") in ["INVALID", "DUPLICATE", "INACTIVE"]):
             logger.warning("Project {} is already in status 'none' and will not be modified".format(project_id))
             continue
 
