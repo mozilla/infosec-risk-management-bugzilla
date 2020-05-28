@@ -119,7 +119,7 @@ class Casa:
         Resolution in CASA is either: done, rejected, or none
         Resolution label in CASA is custom: 'Pending', 'Do not use', 'Warning: Outstanding issues, refer to the RRA',
         'Completed: no outstanding issues found'
-        Resolution in Bugzilla is either: FIXED, INVALID, WONTFIX, DUPLICATE, WORKSFORME or INCOMPLETE
+        Resolution in Bugzilla is either: FIXED, INVALID, INACTIVE, WONTFIX, DUPLICATE, WORKSFORME or INCOMPLETE
 
         See also `decision_map` below
         """
@@ -128,6 +128,7 @@ class Casa:
             "FIXED": ("Completed: No outstanding issues found", "done"),
             "INVALID": ("Pending", "none"),
             "DUPLICATE": ("Pending", "none"),
+            "INACTIVE": ("Pending", "none"),
             "WONTFIX": ("Do not use", "rejected"),
             "INCOMPLETE": ("Warning: Outstanding issues, refer to the RRA", "done"),
         }
