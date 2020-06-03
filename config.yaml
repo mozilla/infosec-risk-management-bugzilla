@@ -6,14 +6,14 @@ bugzilla:
         product: "Enterprise Information Security"
         component: "Rapid Risk Analysis"
         assignees:
-            - culucenk@mozilla.com
+            - gene@mozilla.com
             - tweir@mozilla.com
         cache: "/tmp/rra_assignees.pickle"
     va:
         product: "Enterprise Information Security"
         component: "Vulnerability Assessment"
         assignees:
-            - culucenk@mozilla.com
+            - gene@mozilla.com
         cache: "/tmp/va_assignees.pickle"
 casa:
     url: "https://biztera.com/api/v1/"
