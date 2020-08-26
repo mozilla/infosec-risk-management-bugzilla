@@ -1,13 +1,15 @@
 bugzilla:
     url: "https://bugzilla.mozilla.org/rest/"
     creator: "infosec+rra2json@mozilla.com"
-    needinfo: "shuffman@mozilla.com"
+    needinfo: "jclaudius@mozilla.com"
     rra:
         product: "Enterprise Information Security"
         component: "Rapid Risk Analysis"
         assignees:
             - gene@mozilla.com
-            - tweir@mozilla.com
+            - april@mozilla.com
+            - bmyers@mozilla.com
+            - jclaudius@mozilla.com
         cache: "/tmp/rra_assignees.pickle"
     va:
         product: "Enterprise Information Security"
@@ -21,7 +23,8 @@ casa:
     bot_email: 'bizbot@biztera.com'
 foxsec:
     assignees:
-        - jvehent@mozilla.com
+        - ameihm@mozilla.com
+        - stephouillon@mozilla.com
     keywords:
         - fxa
         - firefox
