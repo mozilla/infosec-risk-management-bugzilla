@@ -7,9 +7,6 @@ bugzilla:
         component: "Rapid Risk Analysis"
         assignees:
             - gene@mozilla.com
-            - april@mozilla.com
-            - bmyers@mozilla.com
-            - jclaudius@mozilla.com
         cache: "/tmp/rra_assignees.pickle"
     va:
         product: "Enterprise Information Security"
