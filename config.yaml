@@ -7,6 +7,7 @@ bugzilla:
         component: "Rapid Risk Analysis"
         assignees:
             - gene@mozilla.com
+            - stephouillon@mozilla.com
         cache: "/tmp/rra_assignees.pickle"
     va:
         product: "Enterprise Information Security"
@@ -20,7 +21,7 @@ casa:
     bot_email: 'bizbot@biztera.com'
 foxsec:
     assignees:
-        - ameihm@mozilla.com
+        - gene@mozilla.com
         - stephouillon@mozilla.com
     keywords:
         - fxa
