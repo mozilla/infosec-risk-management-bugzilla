@@ -3,14 +3,14 @@ bugzilla:
     creator: "infosec+rra2json@mozilla.com"
     needinfo: "jclaudius@mozilla.com"
     rra:
-        product: "Enterprise Information Security"
+        product: "Security Assurance"
         component: "Rapid Risk Analysis"
         assignees:
             - gene@mozilla.com
             - stephouillon@mozilla.com
         cache: "/tmp/rra_assignees.pickle"
     va:
-        product: "Enterprise Information Security"
+        product: "Security Assurance"
         component: "Vulnerability Assessment"
         assignees:
             - gene@mozilla.com
