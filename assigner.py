@@ -263,12 +263,15 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
                         "Will inform risk manager {} of resolution state for bug {} "
                         "(and delegate CASA ticket to this user)".format(bcfg.get("needinfo"), bug.get("id"))
                     )
-                res = capi.casa_set_status(project_id, delegator_id, bug.get("resolution"))
-                logger.info(
-                    "CASA API Updated status for project {} to {}: {} (delegator: {})".format(
-                        project_id, bug.get("resolution"), res, delegator_id
+                try:
+                    res = capi.casa_set_status(project_id, delegator_id, bug.get("resolution"))
+                    logger.info(
+                        "CASA API Updated status for project {} to {}: {} (delegator: {})".format(
+                            project_id, bug.get("resolution"), res, delegator_id
+                        )
                     )
-                )
+                except Exception as e:
+                    logger.error('Attempt to set CASA ticket status failed : {}'.format(e))
             else:
                 logger.info(
                     "Would attempt to set status {} on project {} for bug {}{}"
