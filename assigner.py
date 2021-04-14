@@ -204,12 +204,15 @@ def autocasa(bapi, capi, bcfg, ccfg, dry_run):
         elif delegator_id != deciding_approver:
             ## Set the new assignee if lookup worked
             if not dry_run:
-                res = capi.set_delegator(project_id, delegator_id)
-                logger.info(
-                    "Setting new assignee/delegator in CASA to {} ({}) for project {}".format(
-                        delegator_id, bug.get("assigned_to"), project_id
+                try:
+                    res = capi.set_delegator(project_id, delegator_id)
+                    logger.info(
+                        "Setting new assignee/delegator in CASA to {} ({}) for project {}".format(
+                            delegator_id, bug.get("assigned_to"), project_id
+                        )
                     )
-                )
+                except Exception as e:
+                    logger.error('Attempt to set CASA ticket delegator failed : {}'.format(e))
             else:
                 logger.info(
                     "Would attempt to set assignee/delegator in CASA to {} ({}) for project {}"
