@@ -8,12 +8,14 @@ bugzilla:
         assignees:
             - gene@mozilla.com
             - stephouillon@mozilla.com
+            - stephouillon@mozilla.com
         cache: "/tmp/rra_assignees.pickle"
     va:
         product: "Security Assurance"
         component: "Vulnerability Assessment"
         assignees:
             - gene@mozilla.com
+            - ebell@mozilla.com
             - ebell@mozilla.com
         cache: "/tmp/va_assignees.pickle"
 casa:
@@ -22,7 +24,6 @@ casa:
     bot_email: 'bizbot@biztera.com'
 foxsec:
     assignees:
-        - gene@mozilla.com
         - stephouillon@mozilla.com
     keywords:
         - fxa
