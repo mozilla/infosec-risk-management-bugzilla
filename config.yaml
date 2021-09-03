@@ -12,7 +12,7 @@ bugzilla:
         product: "Security Assurance"
         component: "Vulnerability Assessment"
         assignees:
-            - ebell@mozilla.com
+            - rose@mozilla.com
         cache: "/tmp/va_assignees.pickle"
 casa:
     url: "https://biztera.com/api/v1/"
