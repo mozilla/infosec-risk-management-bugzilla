@@ -15,6 +15,7 @@ import requests
 import sys
 import yaml
 import os
+import json
 
 
 def _setup_logging(logger=logging.getLogger(__name__), debug=True):
@@ -391,6 +392,13 @@ def autoassign(bapi, capi, bcfg, ccfg, fcfg, dry_run):
     with open(bcfg.get("cache"), "wb") as f:
         pickle.dump((assign_list, assign_hash), f)
 
+def send_alert(config, error):
+    routing_key = os.environ.get("PAGERDUTY_ROUTING_KEY")
+    dedup = config.get('dedup_key')
+    url = config.get('url')
+    request_body = {"payload":{"summary":"The syncbot encountered an error","severity":"error","source":"CASA/Bugzilla syncbot","component":"","group":"","class":"","custom_details":{"error":error}},"routing_key":routing_key,"event_action":"trigger","dedup_key":dedup}
+    json_object = json.dumps(request_body)
+    request = requests.post(url, json_object)
 
 def main():
     global logger
@@ -402,13 +410,25 @@ def main():
 
     modules = args.module.split(",")
     logger.debug("Selected modules to run: {}".format(modules))
-
-    if "rra" in modules:
-        autoassign(bapi, capi, config["bugzilla"]["rra"], config["casa"], config["foxsec"], args.dry_run)
-    if "va" in modules:
-        autoassign(bapi, capi, config["bugzilla"]["va"], config["casa"], config["foxsec"], args.dry_run)
-    if "casa" in modules:
-        autocasa(bapi, capi, config["bugzilla"], config["casa"], args.dry_run)
+    encountered_error = False
+    try:
+        if "rra" in modules:
+            autoassign(bapi, capi, config["bugzilla"]["rra"], config["casa"], config["foxsec"], args.dry_run)
+        raise Exception("Error")
+    except:
+        encountered_error = True
+    try:
+        if "va" in modules:
+            autoassign(bapi, capi, config["bugzilla"]["va"], config["casa"], config["foxsec"], args.dry_run)
+    except:
+        encountered_error = True
+    try:
+        if "casa" in modules:
+            autocasa(bapi, capi, config["bugzilla"], config["casa"], args.dry_run)
+    except:
+        encountered_error = True
+    if encountered_error:
+        send_alert(config["pagerduty"], "test")
 
 
 if __name__ == "__main__":

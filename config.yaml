@@ -35,3 +35,6 @@ foxsec:
         - sentry
         - phabricator
         - lando
+pagerduty:
+    url: https://events.pagerduty.com/v2/enqueue
+    dedup_key: broken
