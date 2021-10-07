@@ -393,15 +393,12 @@ def autoassign(bapi, capi, bcfg, ccfg, fcfg, dry_run):
         pickle.dump((assign_list, assign_hash), f)
 
 def send_alert(config, error):
-    global logger
-    routingKey = os.environ.get("PAGERDUTY_ROUTING_KEY")
+    routing_key = os.environ.get("PAGERDUTY_ROUTING_KEY")
     dedup = config.get('dedup_key')
     url = config.get('url')
-    requestBody = {"payload":{"summary":"The syncbot encountered an error","severity":"error","source":"CASA/Bugzilla syncbot","component":"","group":"","class":"","custom_details":{"error":error}},"routing_key":routingKey,"event_action":"trigger","dedup_key":dedup}
-    jsonObject = json.dumps(requestBody)
-    print(jsonObject)
-    request = requests.post(url, jsonObject)
-    print(request.text)
+    request_body = {"payload":{"summary":"The syncbot encountered an error","severity":"error","source":"CASA/Bugzilla syncbot","component":"","group":"","class":"","custom_details":{"error":error}},"routing_key":routing_key,"event_action":"trigger","dedup_key":dedup}
+    json_object = json.dumps(request_body)
+    request = requests.post(url, json_object)
 
 def main():
     global logger
@@ -413,24 +410,24 @@ def main():
 
     modules = args.module.split(",")
     logger.debug("Selected modules to run: {}".format(modules))
-    encounteredError = False
+    encountered_error = False
     try:
         if "rra" in modules:
             autoassign(bapi, capi, config["bugzilla"]["rra"], config["casa"], config["foxsec"], args.dry_run)
         raise Exception("Error")
     except:
-        encounteredError = True
+        encountered_error = True
     try:
         if "va" in modules:
             autoassign(bapi, capi, config["bugzilla"]["va"], config["casa"], config["foxsec"], args.dry_run)
     except:
-        encounteredError = True
+        encountered_error = True
     try:
         if "casa" in modules:
             autocasa(bapi, capi, config["bugzilla"], config["casa"], args.dry_run)
     except:
-        encounteredError = True
-    if encounteredError:
+        encountered_error = True
+    if encountered_error:
         send_alert(config["pagerduty"], "test")
 
 
