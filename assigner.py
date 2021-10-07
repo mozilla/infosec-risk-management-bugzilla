@@ -414,7 +414,6 @@ def main():
     try:
         if "rra" in modules:
             autoassign(bapi, capi, config["bugzilla"]["rra"], config["casa"], config["foxsec"], args.dry_run)
-        raise Exception("Error")
     except:
         encountered_error = True
     try:
