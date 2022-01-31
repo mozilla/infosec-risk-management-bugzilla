@@ -1,7 +1,7 @@
 bugzilla:
     url: "https://bugzilla.mozilla.org/rest/"
     creator: "infosec+rra2json@mozilla.com"
-    needinfo: "jclaudius@mozilla.com"
+    needinfo: "gene@mozilla.com"
     rra:
         product: "Security Assurance"
         component: "Rapid Risk Analysis"
