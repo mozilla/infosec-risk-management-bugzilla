@@ -411,11 +411,7 @@ def main():
     modules = args.module.split(",")
     logger.debug("Selected modules to run: {}".format(modules))
     encountered_error = False
-    try:
-        if "rra" in modules:
-            autoassign(bapi, capi, config["bugzilla"]["rra"], config["casa"], config["foxsec"], args.dry_run)
-    except:
-        encountered_error = True
+
     try:
         if "va" in modules:
             autoassign(bapi, capi, config["bugzilla"]["va"], config["casa"], config["foxsec"], args.dry_run)
