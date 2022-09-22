@@ -412,12 +412,12 @@ def main():
     logger.debug("Selected modules to run: {}".format(modules))
     encountered_error = False
     try:
-        if "rra" in modules:
+        if "rra" in modules and "rra" in config["bugzilla"] and config["bugzilla"]["rra"]["assignees"]:
             autoassign(bapi, capi, config["bugzilla"]["rra"], config["casa"], config["foxsec"], args.dry_run)
     except:
         encountered_error = True
     try:
-        if "va" in modules:
+        if "va" in modules and "va" in config["bugzilla"] and config["bugzilla"]["va"]["assignees"]:
             autoassign(bapi, capi, config["bugzilla"]["va"], config["casa"], config["foxsec"], args.dry_run)
     except:
         encountered_error = True
