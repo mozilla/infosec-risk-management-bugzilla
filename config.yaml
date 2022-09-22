@@ -6,7 +6,6 @@ bugzilla:
         product: "Security Assurance"
         component: "Rapid Risk Analysis"
         assignees:
-            - stephouillon@mozilla.com
         cache: "/tmp/rra_assignees.pickle"
     va:
         product: "Security Assurance"
