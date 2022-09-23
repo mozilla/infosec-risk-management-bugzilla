@@ -5,7 +5,7 @@ bugzilla:
     rra:
         product: "Security Assurance"
         component: "Rapid Risk Analysis"
-        assignees:
+        assignees: []
         cache: "/tmp/rra_assignees.pickle"
     va:
         product: "Security Assurance"
