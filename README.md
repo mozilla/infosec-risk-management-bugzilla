@@ -1,3 +1,7 @@
+# Repo Archived
+
+Mozilla no longer integrates CASA and Bugzilla and so this code is no longer maintained.
+
 # Setup
 
 - Bugzilla credentials are passed as environment variable `BUGZILLA_API_KEY`
