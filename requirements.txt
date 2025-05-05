@@ -1,5 +1,5 @@
 bugzilla==1.0.0
-certifi==2018.1.18
+certifi==2023.7.22
 chardet==3.0.4
 idna==2.6
 pyaml==17.12.1
